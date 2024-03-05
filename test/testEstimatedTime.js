@@ -1,5 +1,6 @@
 const assert = require('assert');
 const {server, calculateChargingTime} = require('../index');
+const {expect} = require('chai');
 const request = require('supertest')(server);
 
 describe('GET /connectors/estimatedChargingTime', () => {
@@ -30,20 +31,11 @@ describe('calculateChargingTime', () => {
     assert.strictEqual(chargingTime.minutes, '120.0');
   });
   it('should throw an error for invalid SOC value', () => {
-    const connectorPower = 10;
-    const batteryCapacity = 40;
-    const soc = 1.2; // Invalid SOC value
-    assert.throws(() => {
-      calculateChargingTime(connectorPower, batteryCapacity, soc);
-    }, Error);
+    expect(() => calculateChargingTime(7, 60, 1)).to.throw('Invalid SOC value: 1');
   });
   it('should throw an error for invalid SOC value (greater than or equal to 1)', () => {
-    const connectorPower = 10;
-    const batteryCapacity = 40;
-    const soc = 1; // Invalid SOC value (equal to 1)
-    assert.throws(() => {
-      calculateChargingTime(connectorPower, batteryCapacity, soc);
-    }, Error);
+    expect(() => calculateChargingTime(7, 60, 1.2)).to.throw('Invalid SOC value: 1.2');
   });
 });
+
 

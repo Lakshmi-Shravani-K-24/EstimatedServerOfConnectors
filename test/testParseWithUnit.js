@@ -1,13 +1,13 @@
 const assert = require('assert');
 const {parseWithUnit} = require('../index');
-
+const {expect} = require('chai');
 describe('parseWithUnit', () => {
   it('should parse value with matching unit', () => {
     const correctValue = '10KW';
     const expectedUnit = 'KW';
-    const result = parseWithUnit(correctValue, expectedUnit);
-    assert.strictEqual(result.value, 10);
-    assert.strictEqual(result.unit, expectedUnit);
+    const validResult = parseWithUnit(correctValue, expectedUnit);
+    assert.strictEqual(validResult.value, 10);
+    assert.strictEqual(validResult.unit, expectedUnit);
   });
 
   it('should throw an error for value with non-matching unit', () => {
@@ -16,6 +16,9 @@ describe('parseWithUnit', () => {
     assert.throws(() => {
       parseWithUnit(value, wrongExpectedUnit);
     }, Error);
+  });
+  it('should throw error for invalid unit', () => {
+    expect(() => parseWithUnit('10%', 'KW')).to.throw('Invalid unit. Expected KW, got %');
   });
 });
 describe('Regular Expression Anchors Test', () => {
@@ -41,5 +44,14 @@ describe('Regular Expression Anchors Test', () => {
     assert.throws(() => {
       parseWithUnit(invalidStartValue, expectedUnit);
     }, Error);
+  });
+});
+describe('parseWithUnit', () => {
+  it('should throw error for invalid value', () => {
+    expect(() => parseWithUnit('abc', 'KW')).to.throw('Invalid value: abc');
+  });
+
+  it('should throw error for invalid unit', () => {
+    expect(() => parseWithUnit('10%', 'KW')).to.throw('Invalid unit. Expected KW, got %');
   });
 });
