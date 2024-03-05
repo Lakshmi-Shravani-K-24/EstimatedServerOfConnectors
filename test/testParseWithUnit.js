@@ -20,6 +20,9 @@ describe('parseWithUnit', () => {
   it('should throw error for invalid unit', () => {
     expect(() => parseWithUnit('10%', 'KW')).to.throw('Invalid unit. Expected KW, got %');
   });
+  it('should throw error for invalid value', () => {
+    expect(() => parseWithUnit('abc', 'KW')).to.throw('Invalid value: abc');
+  });
 });
 describe('Regular Expression Anchors Test', () => {
   it('should match the pattern with $ anchor at the end', () => {
@@ -44,14 +47,5 @@ describe('Regular Expression Anchors Test', () => {
     assert.throws(() => {
       parseWithUnit(invalidStartValue, expectedUnit);
     }, Error);
-  });
-});
-describe('parseWithUnit', () => {
-  it('should throw error for invalid value', () => {
-    expect(() => parseWithUnit('abc', 'KW')).to.throw('Invalid value: abc');
-  });
-
-  it('should throw error for invalid unit', () => {
-    expect(() => parseWithUnit('10%', 'KW')).to.throw('Invalid unit. Expected KW, got %');
   });
 });
