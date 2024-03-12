@@ -34,10 +34,10 @@ describe('Regular Expression Anchors Test', () => {
   });
 
   it('should not match the pattern without $ anchor at the end', () => {
-    const invlaidEndValue = '10KWextra';
+    const invalidEndValue = '10KWextra';
     const expectedUnit = 'KW';
     assert.throws(() => {
-      parseWithUnit(invlaidEndValue, expectedUnit);
+      parseWithUnit(invalidEndValue, expectedUnit);
     }, Error);
   });
 

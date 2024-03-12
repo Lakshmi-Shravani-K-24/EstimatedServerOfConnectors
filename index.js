@@ -14,10 +14,9 @@ const server = app.listen(port, () => {
 function calculateChargingTime(connectorPower, batteryCapacity, soc) {
   if (soc<1) {
     const chargingTimeHours = (batteryCapacity * (1 - soc)) / connectorPower;
-    const chargingTimeMinutes = chargingTimeHours * 60; // Convert hours to minutes
+    const chargingTimeInMinutes = chargingTimeHours * 60; // Convert hours to minutes
     return {
-      hours: chargingTimeHours.toFixed(1),
-      minutes: chargingTimeMinutes.toFixed(1),
+      value: chargingTimeInMinutes.toFixed(1),
     };
   } else {
     throw new Error(`Invalid SOC value: ${soc}`);
@@ -41,14 +40,15 @@ function parseWithUnit(value, expectedUnit) {
 
 app.get('/connectors/estimatedChargingTime', (req, res) => {
   try {
-    const {connectorPower, batteryCapacity, soc} = req.query;
-    const parsedConnectorPower = parseWithUnit(connectorPower, 'KW');
-    const parsedBatteryCapacity = parseWithUnit(batteryCapacity, 'KWh');
-    const parsedSoc = parseWithUnit(soc, '%');
+    const {connectorPowerInKiloWatt, batteryCapacityInKiloWattPerHour, socInPercentage} = req.query;
+    console.log(req.query);
+    const parsedConnectorPower = parseWithUnit(connectorPowerInKiloWatt, 'KW');
+    const parsedBatteryCapacity = parseWithUnit(batteryCapacityInKiloWattPerHour, 'KWh');
+    const parsedSoc = parseWithUnit(socInPercentage, '%');
     const finalsoc=parsedSoc.value/100;
-
-    const estimatedTime = calculateChargingTime(parsedConnectorPower.value, parsedBatteryCapacity.value, finalsoc);
-    res.json({estimatedTime});
+    console.log(finalsoc);
+    const estimatedTimeInMinutes = calculateChargingTime(parsedConnectorPower.value, parsedBatteryCapacity.value, finalsoc);
+    res.json({estimatedTimeInMinutes});
   } catch (error) {
     res.status(400).json({error: error.message});
   }
