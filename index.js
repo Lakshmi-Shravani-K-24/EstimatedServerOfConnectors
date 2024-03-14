@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable complexity */
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -12,46 +10,47 @@ const server = app.listen(port, () => {
 });
 
 function calculateChargingTime(connectorPower, batteryCapacity, soc) {
-  if (soc<1) {
-    const chargingTimeHours = (batteryCapacity * (1 - soc)) / connectorPower;
-    const chargingTimeInMinutes = chargingTimeHours * 60; // Convert hours to minutes
-    return {
-      value: chargingTimeInMinutes.toFixed(1),
-    };
-  } else {
-    throw new Error(`Invalid SOC value: ${soc}`);
-  }
+  const chargingTimeHours = (batteryCapacity * (1 - soc)) / connectorPower;
+  const chargingTimeInMinutes = chargingTimeHours * 60; // Convert hours to minutes
+  return {
+    value: chargingTimeInMinutes.toFixed(1),
+  };
 }
 
-function parseWithUnit(value, expectedUnit) {
-  const regex = /^(\d+)(\w+|%+)$/;
-  const match = value.match(regex);
-  if (!match || match.length !== 3) {
-    throw new Error(`Invalid value: ${value}`);
+function validateParameter(param, paramName) {
+  function checkRequired(param, paramName) {
+    if (param === null || param === undefined) {
+      throw new Error(`Missing required parameter: ${paramName}.`);
+    }
   }
-  const numericValue = parseFloat(match[1]);
-  const unit = match[2];
-  if (unit !== expectedUnit) {
-    throw new Error(`Invalid unit. Expected ${expectedUnit}, got ${unit}`);
-  }
-  return {value: numericValue, unit};
-}
 
+  checkRequired(param, paramName);
+
+  const value = parseFloat(param);
+  if (isNaN(value) || value < 0) {
+    throw new Error(`Invalid ${paramName}. ${paramName} must be a number`);
+  }
+  return value;
+}
 
 app.get('/connectors/estimatedChargingTime', (req, res) => {
   try {
-    const {connectorPowerInKiloWatt, batteryCapacityInKiloWattPerHour, socInPercentage} = req.query;
-    console.log(req.query);
-    const parsedConnectorPower = parseWithUnit(connectorPowerInKiloWatt, 'KW');
-    const parsedBatteryCapacity = parseWithUnit(batteryCapacityInKiloWattPerHour, 'KWh');
-    const parsedSoc = parseWithUnit(socInPercentage, '%');
-    const finalsoc=parsedSoc.value/100;
-    console.log(finalsoc);
-    const estimatedTimeInMinutes = calculateChargingTime(parsedConnectorPower.value, parsedBatteryCapacity.value, finalsoc);
+    const connectorPower = validateParameter(req.query.connectorPowerInKiloWatt,
+        'connectorPowerInKiloWatt');
+    const batteryCapacity = validateParameter(req.query.batteryCapacityInKiloWattPerHour,
+        'batteryCapacityInKiloWattPerHour');
+    const soc = validateParameter(req.query.socInPercentage, 'socInPercentage');
+    const finalsoc = soc / 100;
+    if (finalsoc > 1) {
+      throw new Error('SOC should not exceed 100%');
+    }
+    const estimatedTimeInMinutes = calculateChargingTime(connectorPower, batteryCapacity, finalsoc);
+
     res.json({estimatedTimeInMinutes});
   } catch (error) {
     res.status(400).json({error: error.message});
   }
 });
 
-module.exports = {server, calculateChargingTime, parseWithUnit};
+
+module.exports = {server, calculateChargingTime, validateParameter};
